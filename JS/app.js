@@ -4,6 +4,7 @@
 // globals, rounds, products array
 let productArr = [];
 let votingRounds = 25;
+let indexArr = [];
 
 //dom windows
 let productContainer = document.getElementById('product-container');
@@ -13,8 +14,16 @@ let prodThree = document.getElementById('product-three');
 let resultsBtn = document.getElementById('results-btn');
 let resultsList = document.getElementById('results-container');
 
+
+
+//** Canvas Element */
+
+let canvasElement = document.getElementById('chart');
+
+
+
 // constructor function args:name, file-path / properties: name, file-path, views, votes,
-function Product(name, imgExtension = 'jpg'){
+function Product(name, imgExtension = 'jpg') {
   this.name = name;
   this.img = `img/${name}.${imgExtension}`;
   this.votes = 0;
@@ -44,23 +53,77 @@ let wineGlass = new Product('wine-glass');
 productArr.push(bag, banana, bathroom, boots, breakfast, bubblegum, chair, cthulhu, dogDuck, dragon, pen, petSweep, scissors, shark, tauntaun, unicorn, waterCan, wineGlass);
 // img randomizer function and render function
 
-function randomizer(){
+function randomizer() {
   return Math.floor(Math.random() * productArr.length);
 }
 
+function renderChart() {
+  // build out chart obj
+  let productNames = [];
+  let productVotes = [];
+  let productViews = [];
 
-function render(){
-  let productOneIndex = randomizer();
-  let productTwoIndex = randomizer();
-  let productThreeIndex = randomizer();
+  for (let i = 0; i < productArr.length; i++) {
+    productNames.push(productArr[i].name);
+    productVotes.push(productArr[i].votes);
+    productViews.push(productArr[i].views);
+  }
+
+
+  let chartObj = {
+    type: 'bar',
+    data: {
+      labels: productNames,
+      datasets:
+        [
+          {
+            label: '# of Votes',
+            data: productVotes,
+            borderWidth: 1
+          },
+          {
+            label: '# of Views',
+            data: productViews,
+            borderWidth: 1
+          }
+        ]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  };
+  // use chart constructor to pass in canvas elem and chartObj with data
+  new Chart(canvasElement, chartObj);
+}
+
+function render() {
+
+
+  // while (productOneIndex === productTwoIndex || productTwoIndex === productThreeIndex || productOneIndex === productThreeIndex) {
+  //   productOneIndex = randomizer();
+  //   productTwoIndex = randomizer();
+
+  while(indexArr.length < 6){
+    let randomNum = randomizer();
+    if(!indexArr.includes(randomNum)){
+      indexArr.push(randomNum);
+    }
+  }
+  // assign index arry to each product
+  let productOneIndex = indexArr.shift();
+  let productTwoIndex = indexArr.shift();
+  let productThreeIndex = indexArr.shift();
+
+  console.log(indexArr);
   console.log(productOneIndex);
   console.log(productTwoIndex);
   console.log(productThreeIndex);
-
-  while(productOneIndex === productTwoIndex || productTwoIndex === productThreeIndex || productOneIndex === productThreeIndex){
-    productOneIndex = randomizer();
-    productTwoIndex = randomizer();
-  }
+  //render 1-3 then 4-6
+  
 
   prodOne.src = productArr[productOneIndex].img;
   prodTwo.src = productArr[productTwoIndex].img;
@@ -79,31 +142,34 @@ function render(){
 }
 
 // event handlers: image clicks rendering random img
-function handleClick(e){
+function handleClick(e) {
   let imgClicked = e.target.title;
 
-  for(let i = 0; i < productArr.length; i++){
-    if(imgClicked === productArr[i].name){
+  for (let i = 0; i < productArr.length; i++) {
+    if (imgClicked === productArr[i].name) {
       productArr[i].votes++;
     }
   }
   votingRounds--;
-  render(); 
-  if(votingRounds === 0){
+  render();
+  if (votingRounds === 0) {
     productContainer.removeEventListener('click', handleClick);
   }
 
 };
 
-function handleShowResults(){
+function handleShowResults() {
   // TODO: Display the results once the there are no more votes
-  if(votingRounds === 0){
-    for(let i = 0; i < productArr.length; i++){
-      let liElem = document.createElement('li');
-      liElem.textContent = `${productArr[i].name} - views: ${productArr[i].views} & votes: ${productArr[i].votes}`;
-      resultsList.appendChild(liElem);
-    }
-    resultsBtn.removeEventListener('click', handleShowResults);
+  if (votingRounds === 0) {
+    // call chart helper funciton
+    renderChart();
+
+    // for(let i = 0; i < productArr.length; i++){
+    //   let liElem = document.createElement('li');
+    //   liElem.textContent = `${productArr[i].name} - views: ${productArr[i].views} & votes: ${productArr[i].votes}`;
+    //   resultsList.appendChild(liElem);
+    // }
+    // resultsBtn.removeEventListener('click', handleShowResults);
   }
 
 }
